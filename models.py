@@ -20,4 +20,4 @@ class User(Base):
     email = Column(String, unique=True)
     password = Column(String)
 
-    blogs = relationship("blogs", back_populates="creater")
+    blogs = relationship("Blog", back_populates="creater")

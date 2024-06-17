@@ -1,20 +1,23 @@
 from typing import List
 from fastapi import Depends, FastAPI, HTTPException, Request, status, Response
 from blog import schemas, models  # absolute imports
-from blog.database import SessionLocal, engine
+from blog.database import SessionLocal, engine, get_db
 from sqlalchemy.orm import Session
 from .hashing import Hash
+from .routers import blog
 
 app = FastAPI()
 
 models.Base.metadata.create_all(engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(blog.router)
+
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 @app.post('/create', status_code=status.HTTP_201_CREATED,  tags=['Blogs'])
 async def create_item(request: schemas.Blog, db: Session = Depends(get_db)):
@@ -24,10 +27,10 @@ async def create_item(request: schemas.Blog, db: Session = Depends(get_db)):
     db.refresh(new_blog)
     return new_blog
 
-@app.get('/blog', response_model=List[schemas.ShowBlog],  tags=['Blogs'])
-async def get_all_blogs(db: Session = Depends(get_db)):
-    blogs = db.query(models.Blog).all()
-    return blogs
+# @app.get('/blog', response_model=List[schemas.ShowBlog],  tags=['Blogs'])
+# async def get_all_blogs(db: Session = Depends(get_db)):
+#     blogs = db.query(models.Blog).all()
+#     return blogs
 
 @app.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog,  tags=['Blogs'])
 async def get_blog(id, response: Response, db: Session = Depends(get_db)):
